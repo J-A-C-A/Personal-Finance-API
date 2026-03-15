@@ -22,4 +22,9 @@ def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
         session.add(wyd)
         session.commit()
 
+    return "Dodano nowy wydatek do bazy"
 
+@app.get("/Rekordy")
+def get_Wydatki():
+    with Session(db) as session:
+        return session.query(Wydatek).all()
