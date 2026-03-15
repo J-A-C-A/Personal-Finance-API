@@ -28,3 +28,27 @@ def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
 def get_Wydatki():
     with Session(db) as session:
         return session.query(Wydatek).all()
+    
+@app.put("/Aktualizuj")
+def mod_Wydatek(id, data= None, kwota=None, metoda_platnosci=None, kategoria=None, grupa=None, opis=None):
+    with Session(db) as session:
+        to_mod = session.get(Wydatek, id)
+        if to_mod is None:
+            return "Podany rekord nie istnieje w bazie"
+        else:
+            if data is not None:
+                to_mod.data = data
+            if kwota is not None:
+                to_mod.kwota = kwota
+            if metoda_platnosci is not None:
+                to_mod.metoda_platnosci = metoda_platnosci
+            if kategoria is not None:
+                to_mod.kategoria = kategoria
+            if grupa is not None:
+                to_mod.grupa = grupa
+            if opis is not None:
+                to_mod.opis = opis
+            session.commit()
+            return "Zmodyfikowano podany rekord"
+        
+       
