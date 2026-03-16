@@ -51,4 +51,15 @@ def mod_Wydatek(id, data= None, kwota=None, metoda_platnosci=None, kategoria=Non
             session.commit()
             return "Zmodyfikowano podany rekord"
         
+@app.delete("/Usuń")
+def del_Wydatek(id):
+    with Session(db) as session:
+        to_delete = session.get(Wydatek,id)
+        if to_delete is None:
+            return "Podany rekord nie istnieje"
+        else:
+            session.delete(to_delete)
+            session.commit()
+            return "Usunięto podany rekord"
+        
        
