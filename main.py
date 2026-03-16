@@ -25,9 +25,21 @@ def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
     return "Dodano nowy wydatek do bazy"
 
 @app.get("/Rekordy")
-def get_Wydatki():
+def get_Wydatki(data=None,kwota=None,metoda_platnosci=None,kategoria=None,grupa=None):
     with Session(db) as session:
-        return session.query(Wydatek).all()
+        query = session.query(Wydatek)
+        if data is not None:
+            query = query.filter(Wydatek.data == data)
+        if kwota is not None:
+            query = query.filter(Wydatek.kwota == kwota)
+        if metoda_platnosci is not None:
+            query = query.filter(Wydatek.metoda_platnosci == metoda_platnosci)
+        if kategoria is not None:
+            query = query.filter(Wydatek.kategoria == kategoria)
+        if grupa is not None:
+            query = query.filter(Wydatek.grupa == grupa)
+        return query.all()
+            
     
 @app.put("/Aktualizuj")
 def mod_Wydatek(id, data= None, kwota=None, metoda_platnosci=None, kategoria=None, grupa=None, opis=None):
