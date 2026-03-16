@@ -6,6 +6,7 @@ from sqlalchemy import String
 from sqlalchemy import Column
 from sqlalchemy import Date
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 connection = "sqlite:///data_base.db"
 db = create_engine(connection)

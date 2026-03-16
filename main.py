@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from dataBase import db,Wydatek,Session
+from dataBase import db,Wydatek,Session,func
 from datetime import datetime
 
 app = FastAPI()
@@ -7,22 +7,6 @@ app = FastAPI()
 @app.get("/")
 def health_check():
     return "API działa"
-
-@app.post("/Nowy")
-def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
-    data_format = "%d.%m.%Y"
-    wyd = Wydatek()
-    wyd.data = datetime.strptime(data,data_format)
-    wyd.kwota = kwota
-    wyd.metoda_platnosci = metoda_platnosci
-    wyd.kategoria = kategoria
-    wyd.grupa = grupa
-    wyd.opis = opis
-    with Session(db) as session:
-        session.add(wyd)
-        session.commit()
-
-    return "Dodano nowy wydatek do bazy"
 
 @app.get("/Rekordy")
 def get_Wydatki(data=None,kwota=None,metoda_platnosci=None,kategoria=None,grupa=None):
@@ -39,7 +23,34 @@ def get_Wydatki(data=None,kwota=None,metoda_platnosci=None,kategoria=None,grupa=
         if grupa is not None:
             query = query.filter(Wydatek.grupa == grupa)
         return query.all()
-            
+
+@app.get("/Analiza")
+def analise_Wydatek(data_od=None, data_do=None, kategoria=None):
+    with Session(db) as session:
+        query = session.query(func.sum(Wydatek.kwota))
+        if data_od is not None:
+            query = query.filter(Wydatek.data >= data_od)
+        if data_do is not None:
+            query = query.filter(Wydatek.data <= data_do)
+        if kategoria is not None:
+            query = query.filter(Wydatek.kategoria == kategoria)
+        return query.scalar()
+
+@app.post("/Nowy")
+def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
+    data_format = "%d.%m.%Y"
+    wyd = Wydatek()
+    wyd.data = datetime.strptime(data,data_format)
+    wyd.kwota = kwota
+    wyd.metoda_platnosci = metoda_platnosci
+    wyd.kategoria = kategoria
+    wyd.grupa = grupa
+    wyd.opis = opis
+    with Session(db) as session:
+        session.add(wyd)
+        session.commit()
+
+    return "Dodano nowy wydatek do bazy"
     
 @app.put("/Aktualizuj")
 def mod_Wydatek(id, data= None, kwota=None, metoda_platnosci=None, kategoria=None, grupa=None, opis=None):
