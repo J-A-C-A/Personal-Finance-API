@@ -26,7 +26,7 @@ def get_Wydatki(data=None,kwota=None,metoda_platnosci=None,kategoria=None,grupa=
             query = query.filter(Wydatek.grupa == grupa)
         return query.all()
 
-@app.get("/Analiza")
+@app.get("/Analiza1")
 def analise_Wydatek(data_od=None, data_do=None, kategoria =  None):
     with Session(db) as session:
         query = session.query(func.sum(Wydatek.kwota))
@@ -38,8 +38,8 @@ def analise_Wydatek(data_od=None, data_do=None, kategoria =  None):
             query = query.filter(Wydatek.kategoria == kategoria)
         return query.scalar()
     
-@app.get("/Analiza z walidacją")
-def analise_Wydatek(data_od=None, data_do=None, kategoria: Optional[Kategoria]= None):
+@app.get("/Analiza1 z walidacją")
+def analise_Wydatek(data_od=None, data_do=None, kategoria: Optional[Kategoria]= None, metoda_platnosci: Optional[Metoda_platnosci]= None, grupa: Optional[Grupa]= None):
     with Session(db) as session:
         query = session.query(func.sum(Wydatek.kwota))
         if data_od is not None:
@@ -48,6 +48,10 @@ def analise_Wydatek(data_od=None, data_do=None, kategoria: Optional[Kategoria]= 
             query = query.filter(Wydatek.data <= parse_date(data_do))
         if kategoria is not None:
             query = query.filter(Wydatek.kategoria == kategoria.value)
+        if metoda_platnosci is not None:
+            query = query.filter(Wydatek.metoda_platnosci == metoda_platnosci.value)
+        if grupa is not None:
+            query = query.filter(Wydatek.grupa == grupa.value)
         return query.scalar()
 
 @app.get("/Analiza2")
