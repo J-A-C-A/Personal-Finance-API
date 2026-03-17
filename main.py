@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from dataBase import db,Wydatek,Session,func
 from datetime import datetime
+from daneSchemat import Schemat,Kategoria,Grupa,Metoda_platnosci
+from typing import Optional
 
 app = FastAPI()
 
@@ -25,7 +27,7 @@ def get_Wydatki(data=None,kwota=None,metoda_platnosci=None,kategoria=None,grupa=
         return query.all()
 
 @app.get("/Analiza")
-def analise_Wydatek(data_od=None, data_do=None, kategoria=None):
+def analise_Wydatek(data_od=None, data_do=None, kategoria =  None):
     with Session(db) as session:
         query = session.query(func.sum(Wydatek.kwota))
         if data_od is not None:
@@ -34,6 +36,18 @@ def analise_Wydatek(data_od=None, data_do=None, kategoria=None):
             query = query.filter(Wydatek.data <= parse_date(data_do))
         if kategoria is not None:
             query = query.filter(Wydatek.kategoria == kategoria)
+        return query.scalar()
+    
+@app.get("/Analiza z walidacją")
+def analise_Wydatek(data_od=None, data_do=None, kategoria: Optional[Kategoria]= None):
+    with Session(db) as session:
+        query = session.query(func.sum(Wydatek.kwota))
+        if data_od is not None:
+            query = query.filter(Wydatek.data >= parse_date(data_od))
+        if data_do is not None:
+            query = query.filter(Wydatek.data <= parse_date(data_do))
+        if kategoria is not None:
+            query = query.filter(Wydatek.kategoria == kategoria.value)
         return query.scalar()
 
 @app.get("/Analiza2")
@@ -62,6 +76,20 @@ def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
     wyd.kategoria = kategoria
     wyd.grupa = grupa
     wyd.opis = opis
+    with Session(db) as session:
+        session.add(wyd)
+        session.commit()
+    return "Dodano nowy wydatek do bazy"
+
+@app.post("/Nowy z walidacją")
+def add_Wydatek(wydatek: Schemat):
+    wyd = Wydatek()
+    wyd.data = parse_date(wydatek.data)
+    wyd.kwota = wydatek.kwota
+    wyd.metoda_platnosci = wydatek.metoda_platnosci.value
+    wyd.kategoria = wydatek.kategoria.value
+    wyd.grupa = wydatek.grupa.value
+    wyd.opis = wydatek.opis
     with Session(db) as session:
         session.add(wyd)
         session.commit()
