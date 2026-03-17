@@ -13,7 +13,7 @@ def get_Wydatki(data=None,kwota=None,metoda_platnosci=None,kategoria=None,grupa=
     with Session(db) as session:
         query = session.query(Wydatek)
         if data is not None:
-            query = query.filter(Wydatek.data == data)
+            query = query.filter(Wydatek.data == parse_date(data))
         if kwota is not None:
             query = query.filter(Wydatek.kwota == kwota)
         if metoda_platnosci is not None:
@@ -29,9 +29,9 @@ def analise_Wydatek(data_od=None, data_do=None, kategoria=None):
     with Session(db) as session:
         query = session.query(func.sum(Wydatek.kwota))
         if data_od is not None:
-            query = query.filter(Wydatek.data >= data_od)
+            query = query.filter(Wydatek.data >= parse_date(data_od))
         if data_do is not None:
-            query = query.filter(Wydatek.data <= data_do)
+            query = query.filter(Wydatek.data <= parse_date(data_do))
         if kategoria is not None:
             query = query.filter(Wydatek.kategoria == kategoria)
         return query.scalar()
@@ -42,9 +42,9 @@ def analise_Wydatek2(data_od=None, data_do=None, kategoria=None,grupa=None):
         query = session.query(func.sum(Wydatek.kwota),Wydatek.kategoria)
         query = query.group_by(Wydatek.kategoria)
         if data_od is not None:
-            query = query.filter(Wydatek.data >= data_od)
+            query = query.filter(Wydatek.data >= parse_date(data_od))
         if data_do is not None:
-            query = query.filter(Wydatek.data <= data_do)
+            query = query.filter(Wydatek.data <= parse_date(data_do))
         if kategoria is not None:
             query = query.filter(Wydatek.kategoria == kategoria)
         if grupa is not None:
@@ -55,9 +55,8 @@ def analise_Wydatek2(data_od=None, data_do=None, kategoria=None,grupa=None):
     
 @app.post("/Nowy")
 def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
-    data_format = "%d.%m.%Y"
     wyd = Wydatek()
-    wyd.data = datetime.strptime(data,data_format)
+    wyd.data = parse_date(data)
     wyd.kwota = kwota
     wyd.metoda_platnosci = metoda_platnosci
     wyd.kategoria = kategoria
@@ -66,7 +65,6 @@ def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
     with Session(db) as session:
         session.add(wyd)
         session.commit()
-
     return "Dodano nowy wydatek do bazy"
     
 @app.put("/Aktualizuj")
@@ -77,7 +75,7 @@ def mod_Wydatek(id, data= None, kwota=None, metoda_platnosci=None, kategoria=Non
             return "Podany rekord nie istnieje w bazie"
         else:
             if data is not None:
-                to_mod.data = data
+                to_mod.data = parse_date(data)
             if kwota is not None:
                 to_mod.kwota = kwota
             if metoda_platnosci is not None:
@@ -102,4 +100,14 @@ def del_Wydatek(id):
             session.commit()
             return "Usunięto podany rekord"
         
-       
+def parse_date(data):
+    if data is not None:
+        data_format = ["%d.%m.%Y","%d/%m/%Y","%d-%m-%Y","%Y.%m.%d","%Y/%m/%d","%Y-%m-%d"]
+        for format in data_format:
+            try:
+                nowa_data = datetime.strptime(data,format).date()
+                return nowa_data
+            except:
+                continue
+        return None
+    
