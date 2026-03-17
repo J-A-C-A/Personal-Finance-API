@@ -36,6 +36,23 @@ def analise_Wydatek(data_od=None, data_do=None, kategoria=None):
             query = query.filter(Wydatek.kategoria == kategoria)
         return query.scalar()
 
+@app.get("/Analiza2")
+def analise_Wydatek2(data_od=None, data_do=None, kategoria=None,grupa=None):
+    with Session(db) as session:
+        query = session.query(func.sum(Wydatek.kwota),Wydatek.kategoria)
+        query = query.group_by(Wydatek.kategoria)
+        if data_od is not None:
+            query = query.filter(Wydatek.data >= data_od)
+        if data_do is not None:
+            query = query.filter(Wydatek.data <= data_do)
+        if kategoria is not None:
+            query = query.filter(Wydatek.kategoria == kategoria)
+        if grupa is not None:
+            query = query.filter(Wydatek.grupa == grupa)
+        wyniki = [{"kategoria":item[1], "suma":item[0]} for item in query.all()]
+        return wyniki
+
+    
 @app.post("/Nowy")
 def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
     data_format = "%d.%m.%Y"
