@@ -66,7 +66,51 @@ def analise_Wydatek2(data_od=None, data_do=None, kategoria=None,grupa=None):
         wyniki = [{"kategoria":item[1], "suma":item[0]} for item in query.all()]
         return wyniki
 
+@app.get("/Analiza2 z walidacją")
+def analise_Wydatek2(data_od=None, data_do=None, grupa: Optional[Grupa]=None):
+    with Session(db) as session:
+        query = session.query(func.sum(Wydatek.kwota),Wydatek.kategoria)
+        query = query.group_by(Wydatek.kategoria)
+        if data_od is not None:
+            query = query.filter(Wydatek.data >= parse_date(data_od))
+        if data_do is not None:
+            query = query.filter(Wydatek.data <= parse_date(data_do))
+        if grupa is not None:
+            query = query.filter(Wydatek.grupa == grupa.value)
+        wyniki = [{"Kategoria":item[1], "Suma":item[0]} for item in query.all()]
+        return wyniki
     
+@app.get("/Analiza3 z walidacja")
+def analise_Wydatek3(data_od=None, data_do=None, kategoria: Optional[Kategoria]=None):
+    with Session(db) as session:
+        query = session.query(func.sum(Wydatek.kwota),Wydatek.grupa)
+        query = query.group_by(Wydatek.grupa)
+        if data_od is not None:
+            query = query.filter(Wydatek.data >= parse_date(data_od))
+        if data_do is not None:
+            query = query.filter(Wydatek.data <= parse_date(data_do))
+        if kategoria is not None:
+            query = query.filter(Wydatek.kategoria == kategoria.value)
+        wyniki = [{"Grupa":item[1], "Suma":item[0]} for item in query.all()]
+        return wyniki
+
+@app.get("/Analiza4 z walidacja")
+def analise_Wydatek4(data_od=None, data_do=None, kategoria: Optional[Kategoria]=None, grupa: Optional[Grupa]=None):
+    with Session(db) as session:
+        query = session.query(func.sum(Wydatek.kwota),Wydatek.metoda_platnosci)
+        query = query.group_by(Wydatek.metoda_platnosci)
+        if data_od is not None:
+            query = query.filter(Wydatek.data >= parse_date(data_od))
+        if data_do is not None:
+            query = query.filter(Wydatek.data <= parse_date(data_do))
+        if kategoria is not None:
+            query = query.filter(Wydatek.kategoria == kategoria.value)
+        if grupa is not None:
+            query = query.filter(Wydatek.grupa == grupa.value)
+        wyniki = [{"Metoda płatności":item[1], "Suma":item[0]} for item in query.all()]
+        return wyniki
+
+
 @app.post("/Nowy")
 def add_Wydatek(data,kwota,metoda_platnosci,kategoria,grupa,opis):
     wyd = Wydatek()
@@ -112,6 +156,29 @@ def mod_Wydatek(id, data= None, kwota=None, metoda_platnosci=None, kategoria=Non
                 to_mod.kategoria = kategoria
             if grupa is not None:
                 to_mod.grupa = grupa
+            if opis is not None:
+                to_mod.opis = opis
+            session.commit()
+            return "Zmodyfikowano podany rekord"
+        
+
+@app.put("/Aktualizuj z walidacją")
+def mod_Wydatek(id, data= None, kwota=None, metoda_platnosci: Optional[Metoda_platnosci]=None, kategoria: Optional[Kategoria]=None, grupa: Optional[Grupa]=None, opis=None):
+    with Session(db) as session:
+        to_mod = session.get(Wydatek, id)
+        if to_mod is None:
+            return "Podany rekord nie istnieje w bazie"
+        else:
+            if data is not None:
+                to_mod.data = parse_date(data)
+            if kwota is not None:
+                to_mod.kwota = kwota
+            if metoda_platnosci is not None:
+                to_mod.metoda_platnosci = metoda_platnosci.value
+            if kategoria is not None:
+                to_mod.kategoria = kategoria.value
+            if grupa is not None:
+                to_mod.grupa = grupa.value
             if opis is not None:
                 to_mod.opis = opis
             session.commit()
