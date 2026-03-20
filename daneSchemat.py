@@ -23,6 +23,12 @@ class Metoda_platnosci(Enum):
     val2 = "karta"
     val3 = "przelew"
 
+class Sortowanie(Enum):
+    val1 = "data"
+    val2 = "metoda płatności"
+    val3 = "kategoria"
+    val4 = "grupa"
+
 class Schemat(BaseModel):
     data:str
     kwota:float

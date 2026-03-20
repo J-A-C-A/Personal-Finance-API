@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from dataBase import db,Wydatek,Session,func
 from datetime import datetime
-from daneSchemat import Schemat,Kategoria,Grupa,Metoda_platnosci
+from daneSchemat import Schemat,Kategoria,Grupa,Metoda_platnosci,Sortowanie
 from typing import Optional
 
 app = FastAPI()
@@ -11,7 +11,12 @@ def health_check():
     return "API działa"
 
 @app.get("/Rekordy")
-def get_Wydatki(data=None,kwota=None,kategoria: Optional[Kategoria]= None, metoda_platnosci: Optional[Metoda_platnosci]= None, grupa: Optional[Grupa]= None):
+def get_Wydatki(data=None,kwota=None,kategoria: Optional[Kategoria]= None, metoda_platnosci: Optional[Metoda_platnosci]= None, grupa: Optional[Grupa]= None, sortowanie: Optional[Sortowanie]= None):
+    kolumny = {"data": Wydatek.data,
+               "metoda płatności": Wydatek.metoda_platnosci,
+               "kategoria": Wydatek.kategoria,
+               "grupa": Wydatek.grupa}
+    
     with Session(db) as session:
         query = session.query(Wydatek)
         if data is not None:
@@ -19,11 +24,13 @@ def get_Wydatki(data=None,kwota=None,kategoria: Optional[Kategoria]= None, metod
         if kwota is not None:
             query = query.filter(Wydatek.kwota == kwota)
         if metoda_platnosci is not None:
-            query = query.filter(Wydatek.metoda_platnosci == metoda_platnosci)
+            query = query.filter(Wydatek.metoda_platnosci == metoda_platnosci.value)
         if kategoria is not None:
-            query = query.filter(Wydatek.kategoria == kategoria)
+            query = query.filter(Wydatek.kategoria == kategoria.value)
         if grupa is not None:
-            query = query.filter(Wydatek.grupa == grupa)
+            query = query.filter(Wydatek.grupa == grupa.value)
+        if sortowanie is not None:
+            query = query.order_by(kolumny[sortowanie.value])
         return query.all()
     
 @app.get("/Rekord")
