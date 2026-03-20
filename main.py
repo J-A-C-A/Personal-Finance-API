@@ -11,7 +11,7 @@ def health_check():
     return "API działa"
 
 @app.get("/Rekordy")
-def get_Wydatki(data=None,kwota=None,metoda_platnosci=None,kategoria=None,grupa=None):
+def get_Wydatki(data=None,kwota=None,kategoria: Optional[Kategoria]= None, metoda_platnosci: Optional[Metoda_platnosci]= None, grupa: Optional[Grupa]= None):
     with Session(db) as session:
         query = session.query(Wydatek)
         if data is not None:
@@ -25,6 +25,15 @@ def get_Wydatki(data=None,kwota=None,metoda_platnosci=None,kategoria=None,grupa=
         if grupa is not None:
             query = query.filter(Wydatek.grupa == grupa)
         return query.all()
+    
+@app.get("/Rekord")
+def get_Wydatek(id):
+    with Session(db) as session:
+        query = session.get(Wydatek,id)
+        if query is None:
+            return "Podany rekord nie istnieje"
+        else:
+            return query
 
 @app.get("/Analiza1")
 def analise_Wydatek(data_od=None, data_do=None, kategoria =  None):
