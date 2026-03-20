@@ -1,4 +1,5 @@
 ====OPIS PROJEKTU====
+
 Personal Finance API jest to aplikacja która pozwala na zarządzanie wydatkami osobistymi. Wydatki są zapisywane w bazie danych. Informację, które składają się na wydatek to: id, data, kwota, metoda płatności, kategoria, grupa, opis.
 
 Kategoria przyjmuje następujące wartości:
